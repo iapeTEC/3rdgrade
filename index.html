@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Module 4 – Scientific Report (First Draft)</title>
+  <title>Programa Trainee — Grid & Span (Redação Única)</title>
   <style>
     /* THEME */
     :root{
@@ -45,7 +45,7 @@
     .section{display:flex;flex-direction:column;gap:8px}
     .label{font-weight:700}
     textarea{
-      min-height:120px;width:100%;resize:vertical;background:transparent;
+      min-height:180px;width:100%;resize:vertical;background:transparent;
       border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;outline:none
     }
     .small{font-size:12px}
@@ -58,66 +58,58 @@
     <div class="wrap">
       <div class="row" style="justify-content:space-between;align-items:center">
         <div>
-          <h1>Module 4 – Scientific Report (First Draft)</h1>
-          <div class="sub">Introduction • Methods • Results • Discussion • Conclusion</div>
+          <h1>Programa Trainee — Grid & Span (Redação Única)</h1>
+          <div class="sub">HTML • CSS Grid • Monitoramento de foco</div>
         </div>
-        <button id="themeToggle" class="icon-btn">🌓 Theme</button>
+        <button id="themeToggle" class="icon-btn">🌓 Tema</button>
       </div>
 
       <div class="bar">
         <div class="row">
-          <input id="studentName" type="text" placeholder="Full name" autocomplete="name" />
-          <span class="pill"><strong>Time:</strong> <span id="timer" class="timer">30:00</span></span>
-          <span id="focusFlag" class="badge">Focus OK</span>
-          <span id="tabCount" class="badge">Tab: 0</span>
+          <input id="studentName" type="text" placeholder="Nome completo" autocomplete="name" />
+          <span class="pill"><strong>Tempo:</strong> <span id="timer" class="timer">30:00</span></span>
+          <span id="focusFlag" class="badge">Foco OK</span>
+          <span id="tabCount" class="badge">Aba: 0</span>
         </div>
         <div class="row">
-          <input id="testId" type="text" value="Module4-Scientific-Report-Draft-v1" />
-          <button id="startBtn">Start Writing</button>
-          <button id="submitBtn" disabled>Submit Draft</button>
+          <input id="testId" type="text" value="Trainee-Grid-Span-v1" />
+          <button id="startBtn">Iniciar escrita</button>
+          <button id="submitBtn" disabled>Enviar</button>
         </div>
       </div>
 
       <div class="hint small">
-        Keep this tab open. Auto-submit at 30:00. Copy/Find and tab switches are recorded.
+        Mantenha esta aba aberta. Envio automático em 30:00. Ações de Copiar/Localizar e trocas de aba são registradas.
       </div>
     </div>
   </header>
 
   <main class="wrap">
-    <!-- Scaffolding -->
-    <section class="card">
-      
-    </section>
-
-    <!-- Writing form -->
+    <!-- Redação única -->
     <form id="draftForm" class="grid" autocomplete="off" style="margin-top:16px">
-      
-
       <section class="card section">
-        <div class="label">Explique com suas palavras, o que eh um Grid e um Span e a diferenca entre eles:</div>
-        <textarea id="t_intro" placeholder="The aim of this research is… This topic is important because…"></textarea>
-        <div class="small muted" id="wc_intro">Words: 0</div>
+        <div class="label">"Escreva abaixo o que voce entendeu por Span e Grid, o que sao, e qual a diferenca entre os dois:"</div>
+        <textarea id="t_texto" placeholder="Ex.: Grid define linhas e colunas; span permite que um item ocupe várias colunas/linhas..."></textarea>
+        <div class="small muted" id="wc_texto">Palavras: 0</div>
       </section>
-
-    
+    </form>
 
     <section class="card">
-      <h3>Results & Admin</h3>
-      <p class="muted small">Teacher only.</p>
+      <h3>Resultados & Admin</h3>
+      <p class="muted small">Somente professor(a).</p>
       <div class="row" style="margin-top:10px">
-        <button id="downloadCsvBtn" disabled>Download CSV</button>
-        <button id="resetBtn" class="icon-btn">Reset</button>
+        <button id="downloadCsvBtn" disabled>Baixar CSV</button>
+        <button id="resetBtn" class="icon-btn">Reiniciar</button>
       </div>
     </section>
 
     <footer>
-      <div class="small">Traine</div>
+      <div class="small">Página de redação com monitoramento • UI mínima • Tema Claro/Escuro</div>
     </footer>
   </main>
 
   <script>
-    // ===== Theme toggle =====
+    // ===== Alternância de tema =====
     (function(){
       const root = document.documentElement;
       const saved = localStorage.getItem('theme') || 'light';
@@ -131,15 +123,15 @@
 
     // ===== Config =====
     const DEFAULT_MINUTES = 30;
-    // >>> Troque aqui se precisar apontar para outro deploy <<<
+    // >>> Mantém o mesmo endpoint (mesma planilha) <<<
     const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyvmVTcmjumr5uAGS7W-NWW5LRlRflUCvnkgk37kZqaBhSHcjjM1y84bk_B38NkFpnGaw/exec';
 
-    // ===== State =====
+    // ===== Estado =====
     let started = false, ended = false;
     let startTime = null, timerInterval = null;
     let secondsLeft = DEFAULT_MINUTES * 60;
 
-    // Focus/anti-cheat
+    // Foco/anti-cola
     let tabSwitches = 0, blurCount = 0, isBlurred = false, blurStart = null, totalBlurMs = 0;
     let copyCount = 0, pasteCount = 0, findCount = 0;
 
@@ -156,32 +148,19 @@
 
     const form = document.getElementById('draftForm');
     const fields = {
-      hyp: document.getElementById('t_hyp'),
-      intro: document.getElementById('t_intro'),
-      methods: document.getElementById('t_methods'),
-      results: document.getElementById('t_results'),
-      discussion: document.getElementById('t_discussion'),
-      conclusion: document.getElementById('t_conclusion')
+      texto: document.getElementById('t_texto')
     };
     const wcEls = {
-      intro: document.getElementById('wc_intro'),
-      methods: document.getElementById('wc_methods'),
-      results: document.getElementById('wc_results'),
-      discussion: document.getElementById('wc_discussion'),
-      conclusion: document.getElementById('wc_conclusion')
+      texto: document.getElementById('wc_texto')
     };
 
-    // Lock until start
+    // Travar até iniciar
     [...form.elements].forEach(el => el.disabled = true);
 
-    // Word count helpers
+    // Contagem de palavras
     function countWords(s){ return (s.trim().match(/\b[\w’'-]+\b/g) || []).length; }
     function updateWC(){
-      wcEls.intro.textContent = 'Words: ' + countWords(fields.intro.value);
-      wcEls.methods.textContent = 'Words: ' + countWords(fields.methods.value);
-      wcEls.results.textContent = 'Words: ' + countWords(fields.results.value);
-      wcEls.discussion.textContent = 'Words: ' + countWords(fields.discussion.value);
-      wcEls.conclusion.textContent = 'Words: ' + countWords(fields.conclusion.value);
+      wcEls.texto.textContent = 'Palavras: ' + countWords(fields.texto.value);
     }
     Object.values(fields).forEach(el => el.addEventListener('input', updateWC));
 
@@ -194,60 +173,49 @@
     function tick(){
       secondsLeft--; if(secondsLeft < 0) secondsLeft = 0;
       timerEl.textContent = fmt(secondsLeft);
-      if(secondsLeft === 0){ autoSubmit('time'); }
+      if(secondsLeft === 0){ autoSubmit('tempo'); }
     }
     function startTimer(){ clearInterval(timerInterval); timerInterval = setInterval(tick, 1000); }
 
     function startWriting(){
       const name = nameInput.value.trim();
-      if(!name){ alert('Please enter your full name before starting.'); return; }
+      if(!name){ alert('Por favor, digite seu nome completo antes de começar.'); return; }
       started = true; startTime = new Date();
       nameInput.disabled = true; testIdInput.disabled = true;
       startBtn.disabled = true; submitBtn.disabled = false;
       [...form.elements].forEach(el => el.disabled = false);
       startTimer();
-      localStorage.setItem('m4_draft_session', JSON.stringify({ts: Date.now(), name}));
+      localStorage.setItem('trainee_grid_span_session', JSON.stringify({ts: Date.now(), name}));
     }
 
     function collectPayload(reason='manual'){
       const now = new Date();
-      const studentNameSafe = (nameInput.value || '').trim() || '(no name)';
-      // Build writing object + word counts
+      const studentNameSafe = (nameInput.value || '').trim() || '(sem nome)';
+      const textoVal = fields.texto.value.trim();
+
+      // Objeto de escrita + contagem
       const writing = {
-        hypothesis: fields.hyp.value.trim(),
-        introduction: fields.intro.value.trim(),
-        methods: fields.methods.value.trim(),
-        results: fields.results.value.trim(),
-        discussion: fields.discussion.value.trim(),
-        conclusion: fields.conclusion.value.trim(),
+        texto: textoVal,
         wordCount: {
-          introduction: countWords(fields.intro.value),
-          methods: countWords(fields.methods.value),
-          results: countWords(fields.results.value),
-          discussion: countWords(fields.discussion.value),
-          conclusion: countWords(fields.conclusion.value),
-          total: countWords(
-            [fields.hyp.value, fields.intro.value, fields.methods.value,
-             fields.results.value, fields.discussion.value, fields.conclusion.value].join(' ')
-          )
+          texto: countWords(textoVal),
+          total: countWords(textoVal)
         },
-        version: 'writing-draft-v1'
+        version: 'trainee-grid-span-v1'
       };
 
       return {
-        testId: (testIdInput.value.trim() || 'Module4-Scientific-Report-Draft-v1'),
+        testId: (testIdInput.value.trim() || 'Trainee-Grid-Span-v1'),
         studentName: studentNameSafe,
         startISO: startTime?.toISOString() || null,
         endISO: now.toISOString(),
         durationSec: startTime ? Math.round((now - startTime)/1000) : null,
         reason,
-        // keep score schema for compatibility with your sheet (zeros)
+        // manter esquema de score para compatibilidade (zeros)
         score: {
           totalCorrect: 0, totalPossible: 0,
           byDifficulty: { easy:0, medium:0, hard:0 },
           possibleByDifficulty: { easy:0, medium:0, hard:0 }
         },
-        // answers empty (writing-only page)
         answers: {},
         writing,
         focus: { tabSwitches, blurCount, totalBlurMs, copyCount, pasteCount, findCount }
@@ -290,7 +258,7 @@
       const blob = new Blob([csv], {type:'text/csv'});
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `${(name||'anonymous').replace(/\s+/g,'_')}_Module4_Draft.csv`;
+      a.download = `${(name||'anonimo').replace(/\s+/g,'_')}_Trainee_Grid_Span.csv`;
       document.body.appendChild(a); a.click(); a.remove();
     }
 
@@ -298,7 +266,8 @@
       [...form.elements].forEach(el => el.disabled = true);
       submitBtn.disabled = true; downloadCsvBtn.disabled = false;
       document.querySelectorAll('.card').forEach(sec => sec.classList.add('strike'));
-      document.querySelector('.hint').textContent = 'Locked. Draft recorded.';
+      const hint = document.querySelector('.hint');
+      if(hint) hint.textContent = 'Travado. Redação registrada.';
     }
 
     async function finalize(reason){
@@ -306,36 +275,32 @@
       const payload = collectPayload(reason);
       const csv = toCSV(payload);
       const postRes = await sendResults(payload);
-      downloadCSV(payload.studentName || 'anonymous', csv); // free fallback
+      downloadCSV(payload.studentName || 'anonimo', csv); // fallback local
       lockPage();
-      console.log('Draft payload:', payload, 'POST:', postRes);
-      alert('Draft submitted.');
+      console.log('Payload:', payload, 'POST:', postRes);
+      alert('Redação enviada.');
     }
 
     function autoSubmit(reason){ finalize(reason); }
 
-    // Events
+    // Eventos
     startBtn.addEventListener('click', startWriting);
     submitBtn.addEventListener('click', () => finalize('manual'));
     downloadCsvBtn.addEventListener('click', ()=>{
       const csv = toCSV(collectPayload('download-only'));
-      downloadCSV((nameInput.value || '').trim() || 'anonymous', csv);
+      downloadCSV((nameInput.value || '').trim() || 'anonimo', csv);
     });
     resetBtn.addEventListener('click', ()=> location.reload());
 
-    // Timer
-    function tickTimer(){ /* already defined above */ }
-    function startTimerWrapper(){ /* already defined above */ }
-
-    // Anti-cheat
+    // Anti-cola / foco
     document.addEventListener('visibilitychange', ()=>{
       if(!started || ended) return;
       if(document.visibilityState === 'hidden'){
-        tabSwitches++; tabCountEl.textContent = `Tab: ${tabSwitches}`;
-        focusFlag.textContent = 'Focus LOST';
+        tabSwitches++; tabCountEl.textContent = `Aba: ${tabSwitches}`;
+        focusFlag.textContent = 'Foco PERDIDO';
         isBlurred = true; blurStart = Date.now();
       } else {
-        focusFlag.textContent = 'Focus OK';
+        focusFlag.textContent = 'Foco OK';
         if(isBlurred){ totalBlurMs += Date.now() - (blurStart||Date.now()); isBlurred=false; }
       }
     });
@@ -343,18 +308,18 @@
       if(!started || ended) return;
       blurCount++;
       if (document.visibilityState !== 'hidden') {
-        tabSwitches++; tabCountEl.textContent = `Tab: ${tabSwitches}`;
+        tabSwitches++; tabCountEl.textContent = `Aba: ${tabSwitches}`;
       }
-      focusFlag.textContent='Focus LOST'; isBlurred=true; blurStart=Date.now();
+      focusFlag.textContent='Foco PERDIDO'; isBlurred=true; blurStart=Date.now();
     });
     window.addEventListener('focus', ()=>{
       if(!started || ended) return;
-      focusFlag.textContent='Focus OK';
+      focusFlag.textContent='Foco OK';
       if(isBlurred){ totalBlurMs += Date.now() - (blurStart||Date.now()); isBlurred=false; }
     });
     window.addEventListener('pagehide', ()=>{
       if(!started || ended) return;
-      tabSwitches++; tabCountEl.textContent = `Tab: ${tabSwitches}`;
+      tabSwitches++; tabCountEl.textContent = `Aba: ${tabSwitches}`;
       if(isBlurred){ totalBlurMs += Date.now() - (blurStart||Date.now()); isBlurred=false; }
     });
     document.addEventListener('copy', ()=>{ copyCount++; });
@@ -363,12 +328,8 @@
       if((e.ctrlKey||e.metaKey) && (e.key==='f' || e.key==='F')){ findCount++; }
     });
 
-    // Live word count init
+    // Iniciar contagem de palavras
     updateWC();
-
-    // Timer start helper
-    function startTimer(){ clearInterval(timerInterval); timerInterval = setInterval(tick, 1000); }
   </script>
 </body>
 </html>
-
