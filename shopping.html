@@ -30,24 +30,30 @@
       position:sticky; top:0; z-index:10; background:linear-gradient(to bottom, var(--bg), color-mix(in oklab, var(--bg) 85%, transparent));
       backdrop-filter: blur(6px);
     }
-    .bar{display:flex; gap:12px; align-items:center; justify-content:space-between; padding:14px 0}
-    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px}
-    .tag{padding:6px 10px; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted)}
+    .bar{display:flex; gap:12px; align-items:center; justify-content:space-between; padding:14px 0; flex-wrap:wrap}
+    .brand{display:flex; align-items:center; gap:14px; font-weight:800; letter-spacing:.3px}
+    .brand > div{display:grid; gap:6px}
+    .tag{padding:6px 10px; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted); display:inline-flex; gap:6px; align-items:center}
 
     .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
     .segmented{display:inline-grid; grid-auto-flow:column; border:1px solid var(--border); border-radius:999px; overflow:hidden}
-    .segmented button{background:transparent; color:var(--text); padding:8px 12px; border:0; font-weight:600}
+    .segmented button{background:transparent; color:var(--text); padding:8px 12px; border:0; font-weight:600; cursor:pointer}
     .segmented button[aria-pressed="true"]{background:color-mix(in oklab, var(--accent) 18%, transparent); color:var(--text); outline:2px solid color-mix(in oklab, var(--accent) 44%, transparent)}
 
-    .btn{appearance:none; border:1px solid var(--border); background:var(--card); color:var(--text); padding:10px 14px; border-radius:999px; font-weight:700; cursor:pointer}
+    .btn{appearance:none; border:1px solid var(--border); background:var(--card); color:var(--text); padding:10px 14px; border-radius:999px; font-weight:700; cursor:pointer; white-space:nowrap}
     .btn[aria-pressed="true"]{outline:2px solid var(--accent)}
     .btn.primary{background:var(--text); color:var(--bg); border-color:transparent}
     .btn.good{background:var(--accent); color:#001103; border-color:transparent}
     .btn.warn{background:var(--warn); color:#fff; border-color:transparent}
+    .btn:disabled{opacity:.6; cursor:not-allowed}
 
     .status{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
     .pill{display:inline-flex; gap:8px; align-items:center; padding:8px 12px; border:1px solid var(--border); border-radius:999px; background:var(--card)}
     .mono{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1}
+
+    /* Inputs no cabeçalho */
+    .input{width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:transparent; color:var(--text)}
+    .input.sm{padding:8px 10px; min-width:220px}
 
     /* LAYOUT */
     .grid{display:grid; gap:18px; grid-template-columns:1fr}
@@ -62,8 +68,9 @@
     @media(min-width:1120px){.cards{grid-template-columns:repeat(3,1fr)}}
 
     .card{position:relative; border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--bg)}
-    $1
-    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .thumb{max-height:220px; overflow:hidden}
+    .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+    @supports (aspect-ratio: 1 / 1){ .thumb{aspect-ratio:1 / 1; height:auto} }
 
     .content{padding:10px 10px 12px 10px; display:grid; gap:8px}
     .name{font-weight:700}
@@ -86,15 +93,9 @@
     .progress > i{display:block; height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); width:0%}
 
     .custom{display:grid; gap:8px; border:1px solid var(--border); padding:10px; border-radius:12px; background:var(--bg)}
-    .input{width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:transparent; color:var(--text)}
 
     footer{padding:40px 0 24px 0; color:var(--muted); text-align:center}
     .note{font-size:12px; color:var(--muted)}
-      /* --- Image containment override & Mobile UX --- */
-    /* Keep images inside the reserved square */
-    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    @supports (aspect-ratio: 1 / 1){ .thumb{aspect-ratio:1 / 1; height:auto} }
-    .thumb{max-height:220px; overflow:hidden}
 
     /* Floating Cart button (mobile) */
     .fab{position:fixed; right:16px; bottom:16px; z-index:60; display:none; gap:8px; align-items:center;
@@ -111,6 +112,7 @@
       .mobile-only{display:inline-flex}
       .qty{min-height:44px}
       .btn{min-height:44px}
+      .input.sm{min-width:unset; flex:1}
     }
   </style>
 </head>
@@ -121,10 +123,14 @@
         <span style="font-size:22px">💸</span>
         <div>
           <div>Shopping Challenge</div>
-          <div class="tag mono">Budget: <span id="budgetTag">$86,400.00</span></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <span class="tag mono">Budget: <span id="budgetTag">$86,400.00</span></span>
+            <span class="tag mono">Class: <strong id="classTag">—</strong></span>
+          </div>
         </div>
       </div>
       <div class="controls">
+        <input id="classInput" class="input sm" placeholder="Turma (obrigatório)" required />
         <div class="segmented" role="group" aria-label="Gender selector">
           <button id="btnWoman" aria-pressed="true">Woman</button>
           <button id="btnMan" aria-pressed="false">Man</button>
@@ -134,7 +140,7 @@
           <span class="pill mono" title="Remaining budget"><span>Left</span> <strong id="left">$86,400.00</strong></span>
           <span class="pill mono" title="Elapsed time since you started"><span>Time</span> <strong id="time">00:00</strong></span>
         </span>
-        <button id="startBtn" class="btn good">Start</button>
+        <button id="startBtn" class="btn good" disabled>Start</button>
         <button id="resetBtn" class="btn">Reset</button>
       </div>
     </div>
@@ -144,7 +150,12 @@
     <section class="catalog" id="catalog"></section>
 
     <aside class="panel" aria-label="Cart and checkout">
-      <div class=\"line\"><strong>Cart</strong> <span class=\"small mono\" id=\"itemsCount\">0 items<\/span> <button id=\"closeCart\" class=\"rm small mobile-only\" style=\"margin-left:auto\">Close<\/button><\/div>
+      <div class="line">
+        <strong>Cart</strong>
+        <span class="small mono" id="itemsCount">0 items</span>
+        <button id="closeCart" class="rm small mobile-only" style="margin-left:auto">Close</button>
+      </div>
+
       <div class="cart-list" id="cartList"></div>
 
       <div class="line"><span>Progress</span><span class="mono" id="spent">$0.00 spent</span></div>
@@ -173,13 +184,13 @@
       <div class="custom">
         <strong>Student info (optional)</strong>
         <input class="input" id="studentName" placeholder="Your name" />
-        <input class="input" id="studentGroup" placeholder="Class / Group" />
       </div>
 
       <button id="checkoutBtn" class="btn primary">Submit & Download Excel</button>
       <div class="note">The file includes your purchases, total spent, remaining budget, and your elapsed time.</div>
     </aside>
   </main>
+
   <!-- Mobile floating cart button -->
   <button class="fab" id="cartFab">🛒 <span id="itemsCountFab">0</span> • <span class="mono" id="leftFab">$86,400.00</span></button>
 
@@ -202,12 +213,9 @@
   const el = (tag, props={}) => Object.assign(document.createElement(tag), props);
   const fmt = (n) => n.toLocaleString('en-US', {style:'currency', currency:'USD'});
 
-  function toast(msg){
-    alert(msg); // minimalistic on purpose
-  }
+  function toast(msg){ alert(msg); } // simples
 
   function nowISO(){ return new Date().toISOString(); }
-
   function elapsedMs(){ return startedAt ? (Date.now() - startedAt.getTime()) : 0; }
   function mmss(ms){
     const s = Math.floor(ms/1000); const m = Math.floor(s/60); const r = s%60;
@@ -350,6 +358,7 @@
   // ---------- RENDER ----------
   function render(){
     $('#budgetTag').textContent = fmt(INITIAL_BUDGET);
+    updateClassFromInput();
     updateNumbers();
     renderCatalog();
     renderCart();
@@ -379,7 +388,9 @@
       img.src = item.img;
       thumb.appendChild(img);
     } else {
-      thumb.innerHTML = '<span>PHOTO</span>';
+      const ph = el('div', {className:'muted', textContent:'PHOTO'});
+      ph.style.textAlign='center'; ph.style.padding='24px 0';
+      thumb.appendChild(ph);
     }
     const body = el('div', {className:'content'});
     const name = el('div', {className:'name'}); name.textContent = item.name;
@@ -388,6 +399,7 @@
     const qty = el('input', {className:'qty mono', type:'number', min:'1', step:'1', value:'1'});
     const add = el('button', {className:'btn', textContent:'Add'});
     add.addEventListener('click', ()=>{
+      if(!ensureClass()) return;
       const count = Math.max(1, parseInt(qty.value||'1',10));
       addToCart({ id:item.id, name:item.name, category:cat, price:item.price }, count);
     });
@@ -460,8 +472,27 @@
     const lf = $('#leftFab'); if(lf) lf.textContent = fmt(left);
   }
 
+  // ---------- CLASS (required) ----------
+  const classInput = $('#classInput');
+  function getClassName(){ return (classInput.value||'').trim(); }
+  function updateClassFromInput(){
+    $('#classTag').textContent = getClassName() || '—';
+    $('#startBtn').disabled = !getClassName();
+  }
+  classInput.addEventListener('input', updateClassFromInput);
+
+  function ensureClass(){
+    const ok = !!getClassName();
+    if(!ok){
+      toast('Preencha a TURMA no topo para começar.');
+      classInput.focus();
+    }
+    return ok;
+  }
+
   // ---------- TIMER ----------
   function startTimer(){
+    if(!ensureClass()) return;
     if(startedAt) return;
     startedAt = new Date();
     tick();
@@ -476,6 +507,7 @@
 
   // ---------- CUSTOM ITEMS & SPECIALS ----------
   $('#customBtn').addEventListener('click', ()=>{
+    if(!ensureClass()) return;
     const name = ($('#customName').value||'Custom Item').trim();
     const category = ($('#customCategory').value||'Custom').trim();
     const price = parseFloat($('#customPrice').value||'0');
@@ -484,12 +516,14 @@
     $('#customName').value=''; $('#customCategory').value=''; $('#customPrice').value='';
   });
   $('#titheBtn').addEventListener('click', ()=>{
+    if(!ensureClass()) return;
     const v = parseFloat($('#titheAmount').value||'0');
     if(!v || v<=0) return toast('Enter a valid tithe amount.');
     addToCart({ id:'tithe-'+Math.random().toString(36).slice(2), name:'Tithe (custom amount)', category:'Tithe', price:v }, 1);
     $('#titheAmount').value='';
   });
   $('#offeringBtn').addEventListener('click', ()=>{
+    if(!ensureClass()) return;
     const v = parseFloat($('#offeringAmount').value||'0');
     if(!v || v<=0) return toast('Enter a valid offering amount.');
     addToCart({ id:'offering-'+Math.random().toString(36).slice(2), name:'Offering (custom amount)', category:'Offering', price:v }, 1);
@@ -498,6 +532,7 @@
 
   // ---------- CHECKOUT ----------
   $('#checkoutBtn').addEventListener('click', ()=>{
+    if(!ensureClass()) return;
     if(cart.length===0){ return toast('Your cart is empty.'); }
     const left = getLeft();
     if(left < 0){ return toast('You are over the budget. Remove some items.'); }
@@ -513,7 +548,7 @@
     }));
     const summary = {
       Student: ($('#studentName').value||'').trim(),
-      Group: ($('#studentGroup').value||'').trim(),
+      Group: getClassName(),
       Start_ISO: startedAt ? startedAt.toISOString() : nowISO(),
       End_ISO: end.toISOString(),
       Elapsed_seconds: elapsed,
@@ -523,7 +558,8 @@
       Gender_Version: gender
     };
 
-    const filename = `Shopping_Challenge_${(summary.Student||'Student').replace(/\s+/g,'_')}.xlsx`;
+    const base = (summary.Student||'Student') + '_' + (summary.Group||'Class');
+    const filename = `Shopping_Challenge_${base.replace(/\s+/g,'_')}.xlsx`;
 
     if(window.XLSX){
       const wb = XLSX.utils.book_new();
