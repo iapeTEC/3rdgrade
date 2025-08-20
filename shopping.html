@@ -197,70 +197,44 @@
   const catalog = {
     woman: {
       "Cars": [
-        {id:'w-car-1', name:'Mini Cooper (new)', price:30000},
-        {id:'w-car-2', name:'Honda HR-V (new)', price:28000},
-        {id:'w-car-3', name:'Tesla Model Y (RWD)', price:45000}
-      ],
-      "Clothing": [
-        {id:'w-clo-1', name:'Evening Dress', price:250},
-        {id:'w-clo-2', name:'Business Blazer', price:120},
-        {id:'w-clo-3', name:'Yoga Set', price:70}
-      ],
-      "Video Game Consoles": [
-        {id:'w-con-1', name:'PlayStation 5', price:499},
-        {id:'w-con-2', name:'Nintendo Switch OLED', price:349},
-        {id:'w-con-3', name:'Steam Deck (256GB)', price:399}
-      ],
-      "Games": [
-        {id:'w-gam-1', name:'The Legend of Zelda: Tears of the Kingdom', price:69},
-        {id:'w-gam-2', name:'Animal Crossing: New Horizons', price:59},
-        {id:'w-gam-3', name:'The Sims 4 Expansion', price:39}
-      ],
-      "Flights": [
-        {id:'w-fli-1', name:'Recife → Paris (round-trip, economy)', price:900},
-        {id:'w-fli-2', name:'Recife → Maldives (round-trip, economy)', price:1400},
-        {id:'w-fli-3', name:'Recife → Santorini (round-trip, economy)', price:1200}
-      ],
-      "Land": [
-        {id:'w-lan-1', name:'Beachfront lot (150 m², Brazil)', price:30000},
-        {id:'w-lan-2', name:'Urban garden plot', price:8000},
-        {id:'w-lan-3', name:'Countryside land (2 acres)', price:22000}
-      ],
-      "Homes": [
-        {id:'w-hom-1', name:'Beach cottage (basic)', price:80000},
-        {id:'w-hom-2', name:'City studio apartment', price:65000},
-        {id:'w-hom-3', name:'Tiny house kit', price:20000}
-      ],
-      "Investments": [
-        {id:'w-inv-1', name:'Index Fund (VTI) lot', price:10000},
-        {id:'w-inv-2', name:'Gold ETF (GLD)', price:5000},
-        {id:'w-inv-3', name:'High-yield savings', price:1000}
-      ],
-      "Donations": [
-        {id:'w-don-1', name:"Girls' Education Fund", price:100},
-        {id:'w-don-2', name:'Breast Cancer Research', price:100},
-        {id:'w-don-3', name:'Local Shelter', price:50}
-      ],
-      "Shoes": [
-        {id:'w-sho-1', name:'Heels', price:120},
-        {id:'w-sho-2', name:'Ballet Flats', price:80},
-        {id:'w-sho-3', name:'Leather Boots', price:180}
-      ],
-      "Sneakers": [
-        {id:'w-sne-1', name:'Nike Air Force 1', price:110},
-        {id:'w-sne-2', name:'Adidas Stan Smith', price:100},
-        {id:'w-sne-3', name:'New Balance 574', price:90}
-      ],
-      "Experiences": [
-        {id:'w-exp-1', name:'Spa Day (full)', price:200},
-        {id:'w-exp-2', name:'Broadway Tickets (pair)', price:250},
-        {id:'w-exp-3', name:'Cooking Masterclass', price:150}
-      ],
-      "Handbags & Jewelry": [
-        {id:'w-acc-1', name:'Leather Handbag', price:220},
-        {id:'w-acc-2', name:'Silver Necklace', price:90},
-        {id:'w-acc-3', name:'Smartwatch', price:299}
-      ]
+{id:'w-lan-2', name:'Urban garden plot', price:8000, img:'gardenPlot.jpg'},
+{id:'w-lan-3', name:'Countryside land (2 acres)', price:22000, img:'land.webp'}
+],
+"Homes": [
+{id:'w-hom-1', name:'Beach cottage (basic)', price:80000, img:'Beachcottage.jpg'},
+{id:'w-hom-2', name:'City studio apartment', price:65000, img:'studio.webp'},
+{id:'w-hom-3', name:'Tiny house kit', price:20000, img:'Tinyhouse.jpg'}
+],
+"Investments": [
+{id:'w-inv-1', name:'Index Fund (VTI) lot', price:10000, img:'investment.jpg'},
+{id:'w-inv-2', name:'Gold ETF (GLD)', price:5000, img:'investment.jpg'},
+{id:'w-inv-3', name:'High-yield savings', price:1000, img:'investment.jpg'}
+],
+"Donations": [
+{id:'w-don-1', name:"Girls' Education Fund", price:100, img:'donation.jpg'},
+{id:'w-don-2', name:'Breast Cancer Research', price:100, img:'donation.jpg'},
+{id:'w-don-3', name:'Local Shelter', price:50, img:'donation.jpg'}
+],
+"Shoes": [
+{id:'w-sho-1', name:'Heels', price:120, img:'heels.webp'},
+{id:'w-sho-2', name:'Ballet Flats', price:80, img:'BalletFlats.webp'},
+{id:'w-sho-3', name:'Leather Boots', price:180, img:'boot.avif'}
+],
+"Sneakers": [
+{id:'w-sne-1', name:'Nike Air Force 1', price:110, img:'nike1.avif'},
+{id:'w-sne-2', name:'Adidas Stan Smith', price:100, img:'Adidas.avif'},
+{id:'w-sne-3', name:'New Balance 574', price:90, img:'newbalance.webp'}
+],
+"Experiences": [
+{id:'w-exp-1', name:'Spa Day (full)', price:200, img:'spaday.jpg'},
+{id:'w-exp-2', name:'Broadway Tickets (pair)', price:250, img:'broadway.jpg'},
+{id:'w-exp-3', name:'Cooking Masterclass', price:150, img:'cookingclass.jpg'}
+],
+"Handbags & Jewelry": [
+{id:'w-acc-1', name:'Leather Handbag', price:220, img:'leatherbag.jpg'},
+{id:'w-acc-2', name:'Silver Necklace', price:90, img:'necklace.webp'},
+{id:'w-acc-3', name:'Smartwatch', price:299, img:'applewatch.jpg'}
+]
     },
     man: {
       "Cars": [
@@ -538,4 +512,5 @@
 })();
 </script>
 </body>
+
 </html>
