@@ -1,0 +1,541 @@
+\<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Shopping Challenge — $86,400</title>
+  <meta name="description" content="Spend $86,400 in one session. Two versions: Woman / Man. Cart exports to Excel with total and elapsed time." />
+  <!-- XLSX for real Excel export (fallback to CSV if it fails) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{
+      --accent:#22c55e; /* green */
+      --accent-2:#3b82f6; /* blue */
+      --warn:#ef4444; /* red */
+      --ok:#16a34a; /* darker green */
+      --radius:16px;
+      --shadow:0 6px 24px rgba(0,0,0,.08);
+    }
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+    /* THEMES */
+    html[data-theme="light"]{--bg:#ffffff; --text:#0b1220; --muted:#6b7280; --card:#ffffff; --border:rgba(0,0,0,.12)}
+    html[data-theme="dark"]{--bg:#000000; --text:#e5e7eb; --muted:#9ca3af; --card:#0a0a0a; --border:rgba(255,255,255,.12)}
+
+    .wrap{max-width:1200px; margin:0 auto; padding:18px}
+    header{
+      position:sticky; top:0; z-index:10; background:linear-gradient(to bottom, var(--bg), color-mix(in oklab, var(--bg) 85%, transparent));
+      backdrop-filter: blur(6px);
+    }
+    .bar{display:flex; gap:12px; align-items:center; justify-content:space-between; padding:14px 0}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px}
+    .tag{padding:6px 10px; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted)}
+
+    .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+    .segmented{display:inline-grid; grid-auto-flow:column; border:1px solid var(--border); border-radius:999px; overflow:hidden}
+    .segmented button{background:transparent; color:var(--text); padding:8px 12px; border:0; font-weight:600}
+    .segmented button[aria-pressed="true"]{background:color-mix(in oklab, var(--accent) 18%, transparent); color:var(--text); outline:2px solid color-mix(in oklab, var(--accent) 44%, transparent)}
+
+    .btn{appearance:none; border:1px solid var(--border); background:var(--card); color:var(--text); padding:10px 14px; border-radius:999px; font-weight:700; cursor:pointer}
+    .btn[aria-pressed="true"]{outline:2px solid var(--accent)}
+    .btn.primary{background:var(--text); color:var(--bg); border-color:transparent}
+    .btn.good{background:var(--accent); color:#001103; border-color:transparent}
+    .btn.warn{background:var(--warn); color:#fff; border-color:transparent}
+
+    .status{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    .pill{display:inline-flex; gap:8px; align-items:center; padding:8px 12px; border:1px solid var(--border); border-radius:999px; background:var(--card)}
+    .mono{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1}
+
+    /* LAYOUT */
+    .grid{display:grid; gap:18px; grid-template-columns:1fr}
+    @media(min-width:980px){.grid{grid-template-columns: 1.5fr .9fr}}
+
+    /* CATALOG */
+    .catalog{display:grid; gap:18px}
+    .section{border:1px solid var(--border); border-radius:var(--radius); background:var(--card)}
+    .section h2{margin:0; padding:14px 16px; font-size:18px; border-bottom:1px solid var(--border)}
+    .cards{display:grid; gap:12px; grid-template-columns:repeat(2,1fr)}
+    @media(min-width:720px){.cards{grid-template-columns:repeat(3,1fr)}}
+    @media(min-width:1120px){.cards{grid-template-columns:repeat(3,1fr)}}
+
+    .card{position:relative; border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--bg)}
+    .thumb{height:120px; background:
+      linear-gradient(45deg, color-mix(in oklab, var(--bg) 85%, transparent) 25%, transparent 25%) 0 0/16px 16px,
+      linear-gradient(-45deg, color-mix(in oklab, var(--bg) 85%, transparent) 25%, transparent 25%) 0 0/16px 16px,
+      linear-gradient(45deg, transparent 75%, color-mix(in oklab, var(--bg) 85%, transparent) 75%) 0 0/16px 16px,
+      linear-gradient(-45deg, transparent 75%, color-mix(in oklab, var(--bg) 85%, transparent) 75%) 0 0/16px 16px;
+      display:grid; place-items:center; color:var(--muted); font-weight:700}
+    .content{padding:10px 10px 12px 10px; display:grid; gap:8px}
+    .name{font-weight:700}
+    .price{font-weight:800}
+    .muted{color:var(--muted); font-size:12px}
+    .row{display:flex; gap:8px; align-items:center; justify-content:space-between}
+    .qty{width:68px; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text)}
+
+    /* CART */
+    .panel{position:sticky; top:84px; display:grid; gap:12px; border:1px solid var(--border); border-radius:var(--radius); padding:14px; background:var(--card)}
+    .line{display:flex; align-items:center; justify-content:space-between; gap:14px}
+    .cart-list{display:grid; gap:10px; max-height:44vh; overflow:auto; padding-right:6px}
+    .item{display:grid; gap:4px; border:1px dashed var(--border); border-radius:12px; padding:10px; background:var(--bg)}
+    .item .t{display:flex; justify-content:space-between; gap:10px}
+    .item .s{display:flex; gap:8px; align-items:center}
+    .small{font-size:12px; color:var(--muted)}
+    .rm{background:transparent; border:1px solid var(--border); color:var(--text); border-radius:999px; padding:6px 10px; cursor:pointer}
+
+    .progress{height:8px; background:color-mix(in oklab, var(--bg) 82%, var(--text)); border-radius:999px; overflow:hidden; border:1px solid var(--border)}
+    .progress > i{display:block; height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); width:0%}
+
+    .custom{display:grid; gap:8px; border:1px solid var(--border); padding:10px; border-radius:12px; background:var(--bg)}
+    .input{width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:transparent; color:var(--text)}
+
+    footer{padding:40px 0 24px 0; color:var(--muted); text-align:center}
+    .note{font-size:12px; color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <div class="brand">
+        <span style="font-size:22px">💸</span>
+        <div>
+          <div>Shopping Challenge</div>
+          <div class="tag mono">Budget: <span id="budgetTag">$86,400.00</span></div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="segmented" role="group" aria-label="Gender selector">
+          <button id="btnWoman" aria-pressed="true">Woman</button>
+          <button id="btnMan" aria-pressed="false">Man</button>
+        </div>
+        <button id="themeBtn" class="btn" title="Toggle theme">Toggle Theme</button>
+        <span class="status">
+          <span class="pill mono" title="Remaining budget"><span>Left</span> <strong id="left">$86,400.00</strong></span>
+          <span class="pill mono" title="Elapsed time since you started"><span>Time</span> <strong id="time">00:00</strong></span>
+        </span>
+        <button id="startBtn" class="btn good">Start</button>
+        <button id="resetBtn" class="btn">Reset</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap grid">
+    <section class="catalog" id="catalog"></section>
+
+    <aside class="panel" aria-label="Cart and checkout">
+      <div class="line"><strong>Cart</strong> <span class="small mono" id="itemsCount">0 items</span></div>
+      <div class="cart-list" id="cartList"></div>
+
+      <div class="line"><span>Progress</span><span class="mono" id="spent">$0.00 spent</span></div>
+      <div class="progress"><i id="bar"></i></div>
+
+      <div class="custom">
+        <strong>Add custom item</strong>
+        <input class="input" id="customName" placeholder="Item name (e.g., 'Helicopter Ride')" />
+        <input class="input" id="customCategory" placeholder="Category (optional)" />
+        <input class="input" id="customPrice" type="number" min="0" step="0.01" placeholder="Price in USD" />
+        <button id="customBtn" class="btn">Add to cart</button>
+      </div>
+
+      <div class="custom">
+        <strong>Special: Tithe & Offering (custom amount)</strong>
+        <div class="line">
+          <input class="input" id="titheAmount" type="number" min="0" step="0.01" placeholder="Tithe amount (USD)" />
+          <button class="btn" id="titheBtn">Add Tithe</button>
+        </div>
+        <div class="line">
+          <input class="input" id="offeringAmount" type="number" min="0" step="0.01" placeholder="Offering amount (USD)" />
+          <button class="btn" id="offeringBtn">Add Offering</button>
+        </div>
+      </div>
+
+      <div class="custom">
+        <strong>Student info (optional)</strong>
+        <input class="input" id="studentName" placeholder="Your name" />
+        <input class="input" id="studentGroup" placeholder="Class / Group" />
+      </div>
+
+      <button id="checkoutBtn" class="btn primary">Submit & Download Excel</button>
+      <div class="note">The file includes your purchases, total spent, remaining budget, and your elapsed time.</div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="note">Prices are rough real-world style estimates for classroom simulation. Photos: add your own in each product card placeholder.</div>
+    </div>
+  </footer>
+
+<script>
+(function(){
+  const INITIAL_BUDGET = 86400;
+  let gender = 'woman';
+  let cart = [];
+  let startedAt = null; // Date
+  let ticker = null;
+
+  // ---------- UTIL ----------
+  const $ = sel => document.querySelector(sel);
+  const el = (tag, props={}) => Object.assign(document.createElement(tag), props);
+  const fmt = (n) => n.toLocaleString('en-US', {style:'currency', currency:'USD'});
+
+  function toast(msg){
+    alert(msg); // minimalistic on purpose
+  }
+
+  function nowISO(){ return new Date().toISOString(); }
+
+  function elapsedMs(){ return startedAt ? (Date.now() - startedAt.getTime()) : 0; }
+  function mmss(ms){
+    const s = Math.floor(ms/1000); const m = Math.floor(s/60); const r = s%60;
+    return String(m).padStart(2,'0') + ':' + String(r).padStart(2,'0');
+  }
+
+  // ---------- DATA ----------
+  const catalog = {
+    woman: {
+      "Cars": [
+        {id:'w-car-1', name:'Mini Cooper (new)', price:30000},
+        {id:'w-car-2', name:'Honda HR-V (new)', price:28000},
+        {id:'w-car-3', name:'Tesla Model Y (RWD)', price:45000}
+      ],
+      "Clothing": [
+        {id:'w-clo-1', name:'Evening Dress', price:250},
+        {id:'w-clo-2', name:'Business Blazer', price:120},
+        {id:'w-clo-3', name:'Yoga Set', price:70}
+      ],
+      "Video Game Consoles": [
+        {id:'w-con-1', name:'PlayStation 5', price:499},
+        {id:'w-con-2', name:'Nintendo Switch OLED', price:349},
+        {id:'w-con-3', name:'Steam Deck (256GB)', price:399}
+      ],
+      "Games": [
+        {id:'w-gam-1', name:'The Legend of Zelda: Tears of the Kingdom', price:69},
+        {id:'w-gam-2', name:'Animal Crossing: New Horizons', price:59},
+        {id:'w-gam-3', name:'The Sims 4 Expansion', price:39}
+      ],
+      "Flights": [
+        {id:'w-fli-1', name:'Recife → Paris (round-trip, economy)', price:900},
+        {id:'w-fli-2', name:'Recife → Maldives (round-trip, economy)', price:1400},
+        {id:'w-fli-3', name:'Recife → Santorini (round-trip, economy)', price:1200}
+      ],
+      "Land": [
+        {id:'w-lan-1', name:'Beachfront lot (150 m², Brazil)', price:30000},
+        {id:'w-lan-2', name:'Urban garden plot', price:8000},
+        {id:'w-lan-3', name:'Countryside land (2 acres)', price:22000}
+      ],
+      "Homes": [
+        {id:'w-hom-1', name:'Beach cottage (basic)', price:80000},
+        {id:'w-hom-2', name:'City studio apartment', price:65000},
+        {id:'w-hom-3', name:'Tiny house kit', price:20000}
+      ],
+      "Investments": [
+        {id:'w-inv-1', name:'Index Fund (VTI) lot', price:10000},
+        {id:'w-inv-2', name:'Gold ETF (GLD)', price:5000},
+        {id:'w-inv-3', name:'High-yield savings', price:1000}
+      ],
+      "Donations": [
+        {id:'w-don-1', name:"Girls' Education Fund", price:100},
+        {id:'w-don-2', name:'Breast Cancer Research', price:100},
+        {id:'w-don-3', name:'Local Shelter', price:50}
+      ],
+      "Shoes": [
+        {id:'w-sho-1', name:'Heels', price:120},
+        {id:'w-sho-2', name:'Ballet Flats', price:80},
+        {id:'w-sho-3', name:'Leather Boots', price:180}
+      ],
+      "Sneakers": [
+        {id:'w-sne-1', name:'Nike Air Force 1', price:110},
+        {id:'w-sne-2', name:'Adidas Stan Smith', price:100},
+        {id:'w-sne-3', name:'New Balance 574', price:90}
+      ],
+      "Experiences": [
+        {id:'w-exp-1', name:'Spa Day (full)', price:200},
+        {id:'w-exp-2', name:'Broadway Tickets (pair)', price:250},
+        {id:'w-exp-3', name:'Cooking Masterclass', price:150}
+      ],
+      "Handbags & Jewelry": [
+        {id:'w-acc-1', name:'Leather Handbag', price:220},
+        {id:'w-acc-2', name:'Silver Necklace', price:90},
+        {id:'w-acc-3', name:'Smartwatch', price:299}
+      ]
+    },
+    man: {
+      "Cars": [
+        {id:'m-car-1', name:'Ford Mustang GT (new)', price:43000},
+        {id:'m-car-2', name:'Chevrolet Silverado 1500 (new)', price:42000},
+        {id:'m-car-3', name:'Tesla Model 3 (RWD)', price:39990}
+      ],
+      "Clothing": [
+        {id:'m-clo-1', name:'Two-piece Suit', price:300},
+        {id:'m-clo-2', name:'Leather Jacket', price:180},
+        {id:'m-clo-3', name:'Casual Oxford Shirt', price:40}
+      ],
+      "Video Game Consoles": [
+        {id:'m-con-1', name:'PlayStation 5', price:499},
+        {id:'m-con-2', name:'Xbox Series X', price:499},
+        {id:'m-con-3', name:'Nintendo Switch OLED', price:349}
+      ],
+      "Games": [
+        {id:'m-gam-1', name:'Elden Ring', price:59},
+        {id:'m-gam-2', name:'EA Sports FC 25', price:69},
+        {id:'m-gam-3', name:'Forza Horizon 5', price:59}
+      ],
+      "Flights": [
+        {id:'m-fli-1', name:'Rio → Tokyo (round-trip, economy)', price:1200},
+        {id:'m-fli-2', name:'São Paulo → Paris (round-trip, economy)', price:900},
+        {id:'m-fli-3', name:'Recife → New York (round-trip, economy)', price:800}
+      ],
+      "Land": [
+        {id:'m-lan-1', name:'Rural Plot (1 acre)', price:15000},
+        {id:'m-lan-2', name:'Beach-adjacent lot (200 m², Brazil)', price:25000},
+        {id:'m-lan-3', name:'Countryside farm share', price:10000}
+      ],
+      "Homes": [
+        {id:'m-hom-1', name:'2-bed Apartment (city)', price:75000},
+        {id:'m-hom-2', name:'Mountain Cabin (basic)', price:60000},
+        {id:'m-hom-3', name:'Tiny house kit', price:20000}
+      ],
+      "Investments": [
+        {id:'m-inv-1', name:'S&P 500 ETF lot', price:10000},
+        {id:'m-inv-2', name:'US Treasury Bond ($1k face)', price:950},
+        {id:'m-inv-3', name:'Bitcoin (fractional)', price:5000}
+      ],
+      "Donations": [
+        {id:'m-don-1', name:'UNICEF', price:100},
+        {id:'m-don-2', name:'Red Cross', price:100},
+        {id:'m-don-3', name:'Local Food Bank', price:50}
+      ],
+      "Shoes": [
+        {id:'m-sho-1', name:'Leather Oxfords', price:120},
+        {id:'m-sho-2', name:'Running Shoes', price:100},
+        {id:'m-sho-3', name:'Hiking Boots', price:160}
+      ],
+      "Sneakers": [
+        {id:'m-sne-1', name:'Nike Air Max', price:130},
+        {id:'m-sne-2', name:'Adidas Ultraboost', price:180},
+        {id:'m-sne-3', name:'Converse Chuck Taylor', price:65}
+      ],
+      "Experiences": [
+        {id:'m-exp-1', name:'Track Day (sports car)', price:350},
+        {id:'m-exp-2', name:'Football Match VIP', price:200},
+        {id:'m-exp-3', name:'Barber & Spa Package', price:150}
+      ]
+    }
+  };
+
+  // ---------- RENDER ----------
+  function render(){
+    $('#budgetTag').textContent = fmt(INITIAL_BUDGET);
+    updateNumbers();
+    renderCatalog();
+    renderCart();
+  }
+
+  function renderCatalog(){
+    const data = catalog[gender];
+    const host = $('#catalog');
+    host.innerHTML = '';
+    Object.entries(data).forEach(([sectionName, items])=>{
+      const sec = el('div', {className:'section'});
+      const h2 = el('h2'); h2.textContent = sectionName; sec.appendChild(h2);
+      const wrap = el('div', {className:'cards'});
+      items.forEach(item=>{
+        wrap.appendChild(cardForItem(item, sectionName));
+      });
+      sec.appendChild(wrap);
+      host.appendChild(sec);
+    });
+  }
+
+  function cardForItem(item, cat){
+    const c = el('article', {className:'card'});
+    const thumb = el('div', {className:'thumb'});
+    thumb.innerHTML = '<span>PHOTO</span>';
+    const body = el('div', {className:'content'});
+    const name = el('div', {className:'name'}); name.textContent = item.name;
+    const price = el('div', {className:'price mono'}); price.textContent = fmt(item.price);
+    const row = el('div', {className:'row'});
+    const qty = el('input', {className:'qty mono', type:'number', min:'1', step:'1', value:'1'});
+    const add = el('button', {className:'btn', textContent:'Add'});
+    add.addEventListener('click', ()=>{
+      const count = Math.max(1, parseInt(qty.value||'1',10));
+      addToCart({ id:item.id, name:item.name, category:cat, price:item.price }, count);
+    });
+    row.append(qty, add);
+    const muted = el('div', {className:'muted', textContent:'Add your own photo later'});
+    body.append(name, price, row, muted);
+    c.append(thumb, body);
+    return c;
+  }
+
+  // ---------- CART ----------
+  function addToCart(item, qty){
+    if(!startedAt){ startTimer(); }
+    const wouldSpend = item.price * qty;
+    if(wouldSpend > getLeft()){
+      toast('Not enough budget for this add. Consider reducing the quantity.');
+      return;
+    }
+    const found = cart.find(x => x.id === item.id);
+    if(found){ found.qty += qty; } else { cart.push({...item, qty}); }
+    renderCart();
+  }
+  function removeFromCart(id){ cart = cart.filter(x=>x.id!==id); renderCart(); }
+
+  function renderCart(){
+    const list = $('#cartList');
+    list.innerHTML = '';
+    cart.forEach(line=>{
+      const row = el('div', {className:'item'});
+      const top = el('div', {className:'t'});
+      const left = el('div', {textContent: line.name});
+      const right = el('div', {className:'mono', textContent: fmt(line.price)+' × '+line.qty});
+      top.append(left,right);
+      const sub = el('div', {className:'s small'});
+      sub.textContent = line.category + ' • ' + fmt(line.price*line.qty);
+      const actions = el('div', {className:'line'});
+      const qtyInput = el('input', {className:'qty mono', type:'number', min:'1', step:'1', value:String(line.qty)});
+      qtyInput.addEventListener('change', ()=>{
+        const newQty = Math.max(1, parseInt(qtyInput.value||'1',10));
+        const old = line.qty;
+        const delta = (newQty - old) * line.price;
+        if(delta > getLeft()){
+          toast('Not enough budget for that quantity.');
+          qtyInput.value = String(old);
+          return;
+        }
+        line.qty = newQty; updateNumbers(); renderCart();
+      });
+      const rm = el('button', {className:'rm small', textContent:'Remove'});
+      rm.addEventListener('click', ()=> removeFromCart(line.id));
+      actions.append(qtyInput, rm);
+      row.append(top, sub, actions);
+      list.appendChild(row);
+    });
+    updateNumbers();
+  }
+
+  function getSpent(){ return cart.reduce((s,x)=> s + x.price*x.qty, 0); }
+  function getLeft(){ return INITIAL_BUDGET - getSpent(); }
+
+  function updateNumbers(){
+    $('#itemsCount').textContent = cart.length + (cart.length===1? ' item':' items');
+    const spent = getSpent(); const left = getLeft();
+    $('#spent').textContent = fmt(spent) + ' spent';
+    $('#left').textContent = fmt(left);
+    const pct = Math.min(100, Math.max(0, Math.round((spent/INITIAL_BUDGET)*100)));
+    $('#bar').style.width = pct + '%';
+  }
+
+  // ---------- TIMER ----------
+  function startTimer(){
+    if(startedAt) return;
+    startedAt = new Date();
+    tick();
+    ticker = setInterval(tick, 1000);
+  }
+  function resetAll(){
+    cart = []; startedAt = null; clearInterval(ticker); ticker = null;
+    $('#time').textContent = '00:00';
+    render();
+  }
+  function tick(){ $('#time').textContent = mmss(elapsedMs()); }
+
+  // ---------- CUSTOM ITEMS & SPECIALS ----------
+  $('#customBtn').addEventListener('click', ()=>{
+    const name = ($('#customName').value||'Custom Item').trim();
+    const category = ($('#customCategory').value||'Custom').trim();
+    const price = parseFloat($('#customPrice').value||'0');
+    if(!price || price<=0) return toast('Enter a valid price for the custom item.');
+    addToCart({ id:'c-'+Math.random().toString(36).slice(2), name, category, price }, 1);
+    $('#customName').value=''; $('#customCategory').value=''; $('#customPrice').value='';
+  });
+  $('#titheBtn').addEventListener('click', ()=>{
+    const v = parseFloat($('#titheAmount').value||'0');
+    if(!v || v<=0) return toast('Enter a valid tithe amount.');
+    addToCart({ id:'tithe-'+Math.random().toString(36).slice(2), name:'Tithe (custom amount)', category:'Tithe', price:v }, 1);
+    $('#titheAmount').value='';
+  });
+  $('#offeringBtn').addEventListener('click', ()=>{
+    const v = parseFloat($('#offeringAmount').value||'0');
+    if(!v || v<=0) return toast('Enter a valid offering amount.');
+    addToCart({ id:'offering-'+Math.random().toString(36).slice(2), name:'Offering (custom amount)', category:'Offering', price:v }, 1);
+    $('#offeringAmount').value='';
+  });
+
+  // ---------- CHECKOUT ----------
+  $('#checkoutBtn').addEventListener('click', ()=>{
+    if(cart.length===0){ return toast('Your cart is empty.'); }
+    const left = getLeft();
+    if(left < 0){ return toast('You are over the budget. Remove some items.'); }
+    const end = new Date();
+    const elapsed = Math.round(elapsedMs()/1000);
+    const rows = cart.map(x=>({
+      Item:x.name,
+      Category:x.category,
+      Price:x.price,
+      Quantity:x.qty,
+      Subtotal: +(x.price*x.qty).toFixed(2),
+      Gender_Version: gender
+    }));
+    const summary = {
+      Student: ($('#studentName').value||'').trim(),
+      Group: ($('#studentGroup').value||'').trim(),
+      Start_ISO: startedAt ? startedAt.toISOString() : nowISO(),
+      End_ISO: end.toISOString(),
+      Elapsed_seconds: elapsed,
+      Total_spent: +getSpent().toFixed(2),
+      Budget: INITIAL_BUDGET,
+      Remaining: +getLeft().toFixed(2),
+      Gender_Version: gender
+    };
+
+    const filename = `Shopping_Challenge_${(summary.Student||'Student').replace(/\s+/g,'_')}.xlsx`;
+
+    if(window.XLSX){
+      const wb = XLSX.utils.book_new();
+      const ws1 = XLSX.utils.json_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws1, 'Purchases');
+      const ws2 = XLSX.utils.json_to_sheet([summary]);
+      XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+      XLSX.writeFile(wb, filename);
+    } else {
+      // Fallback to CSV (still opens in Excel)
+      let csv = 'Item,Category,Price,Quantity,Subtotal,Gender\n';
+      rows.forEach(r=>{csv += `${r.Item},${r.Category},${r.Price},${r.Quantity},${r.Subtotal},${r.Gender_Version}\n`;});
+      csv += `\nStudent,Group,Start,End,Elapsed_seconds,Total_spent,Budget,Remaining,Gender\n`;
+      csv += `${summary.Student},${summary.Group},${summary.Start_ISO},${summary.End_ISO},${summary.Elapsed_seconds},${summary.Total_spent},${summary.Budget},${summary.Remaining},${summary.Gender_Version}\n`;
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = el('a', {download: filename.replace('.xlsx','.csv')});
+      a.href = URL.createObjectURL(blob); a.click(); URL.revokeObjectURL(a.href);
+    }
+  });
+
+  // ---------- THEME & GENDER ----------
+  $('#themeBtn').addEventListener('click', ()=>{
+    const html = document.documentElement;
+    const mode = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', mode);
+  });
+  $('#btnWoman').addEventListener('click', ()=>{ setGender('woman'); });
+  $('#btnMan').addEventListener('click', ()=>{ setGender('man'); });
+  function setGender(g){
+    gender = g;
+    $('#btnWoman').setAttribute('aria-pressed', g==='woman');
+    $('#btnMan').setAttribute('aria-pressed', g==='man');
+    renderCatalog();
+  }
+
+  // ---------- START/RESET ----------
+  $('#startBtn').addEventListener('click', startTimer);
+  $('#resetBtn').addEventListener('click', resetAll);
+
+  // initial render
+  render();
+})();
+</script>
+</body>
+</html>
