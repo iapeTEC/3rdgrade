@@ -90,6 +90,28 @@
 
     footer{padding:40px 0 24px 0; color:var(--muted); text-align:center}
     .note{font-size:12px; color:var(--muted)}
+      /* --- Image containment override & Mobile UX --- */
+    /* Keep images inside the reserved square */
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    @supports (aspect-ratio: 1 / 1){ .thumb{aspect-ratio:1 / 1; height:auto} }
+    .thumb{max-height:220px; overflow:hidden}
+
+    /* Floating Cart button (mobile) */
+    .fab{position:fixed; right:16px; bottom:16px; z-index:60; display:none; gap:8px; align-items:center;
+      padding:12px 16px; border-radius:999px; border:1px solid var(--border); background:var(--card); box-shadow:var(--shadow); font-weight:800}
+    .mobile-only{display:none}
+
+    @media(max-width:980px){
+      .grid{grid-template-columns:1fr}
+      .panel{position:fixed; left:0; right:0; bottom:0; top:auto; z-index:55; border-radius:18px 18px 0 0; max-height:78vh;
+        transform:translateY(100%); transition:transform .25s ease; overflow:auto}
+      .panel.open{transform:translateY(0)}
+      .panel .cart-list{max-height:40vh}
+      .fab{display:inline-flex}
+      .mobile-only{display:inline-flex}
+      .qty{min-height:44px}
+      .btn{min-height:44px}
+    }
   </style>
 </head>
 <body>
@@ -122,7 +144,7 @@
     <section class="catalog" id="catalog"></section>
 
     <aside class="panel" aria-label="Cart and checkout">
-      <div class="line"><strong>Cart</strong> <span class="small mono" id="itemsCount">0 items</span></div>
+      <div class=\"line\"><strong>Cart</strong> <span class=\"small mono\" id=\"itemsCount\">0 items<\/span> <button id=\"closeCart\" class=\"rm small mobile-only\" style=\"margin-left:auto\">Close<\/button><\/div>
       <div class="cart-list" id="cartList"></div>
 
       <div class="line"><span>Progress</span><span class="mono" id="spent">$0.00 spent</span></div>
@@ -158,6 +180,8 @@
       <div class="note">The file includes your purchases, total spent, remaining budget, and your elapsed time.</div>
     </aside>
   </main>
+  <!-- Mobile floating cart button -->
+  <button class="fab" id="cartFab">🛒 <span id="itemsCountFab">0</span> • <span class="mono" id="leftFab">$86,400.00</span></button>
 
   <footer>
     <div class="wrap">
@@ -431,6 +455,9 @@
     $('#left').textContent = fmt(left);
     const pct = Math.min(100, Math.max(0, Math.round((spent/INITIAL_BUDGET)*100)));
     $('#bar').style.width = pct + '%';
+    // mobile bar
+    const icf = $('#itemsCountFab'); if(icf) icf.textContent = String(cart.length);
+    const lf = $('#leftFab'); if(lf) lf.textContent = fmt(left);
   }
 
   // ---------- TIMER ----------
@@ -516,6 +543,13 @@
       a.href = URL.createObjectURL(blob); a.click(); URL.revokeObjectURL(a.href);
     }
   });
+
+  // ---------- MOBILE CART TOGGLER ----------
+  const cartFab = document.getElementById('cartFab');
+  const closeCart = document.getElementById('closeCart');
+  function toggleCart(){ document.querySelector('.panel').classList.toggle('open'); }
+  if(cartFab) cartFab.addEventListener('click', toggleCart);
+  if(closeCart) closeCart.addEventListener('click', toggleCart);
 
   // ---------- THEME & GENDER ----------
   $('#themeBtn').addEventListener('click', ()=>{
